@@ -1,7 +1,6 @@
 import program from 'commander'
 import {Network} from './network'
 
-
 program.command('new')
     .action( async c => {
         const network = new Network()

@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf dist/ && ./node_modules/.bin/babel ./ --out-dir dist/ --ignore ./node_modules",
     "start:debug": "npm run build && nodemon dist/index.js",
-    "send":"npm run build && node dist/index.js"
+    "send": "npm run build && node dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +22,7 @@
   "dependencies": {
     "commander": "^2.20.0",
     "nodemon": "^1.19.1",
+    "ramda": "^0.26.1",
     "rimraf": "^2.6.3"
   },
   "devDependencies": {
