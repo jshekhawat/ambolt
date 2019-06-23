@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0xfolio/crucible.git"
+    "url": "git+https://github.com/0xfolio/ambolt.git"
   },
   "author": "jshekhawat",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/0xfolio/crucible/issues"
+    "url": "https://github.com/0xfolio/ambolt/issues"
   },
-  "homepage": "https://github.com/0xfolio/crucible#readme",
+  "homepage": "https://github.com/0xfolio/ambolt#readme",
   "dependencies": {
     "@babel/runtime": "^7.4.5",
     "commander": "^2.20.0",

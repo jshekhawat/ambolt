@@ -148,10 +148,17 @@ services:
     ports:
         - 7050:7050
     volumes:
-      
-  
+      - ./channel-artifacts/config/:/etc/hyperledger/configtx
+      - ./channel-artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
+    ${orgs.map(o=> {
+      return `  - ./channel-artifacts/crypto-config/peerOrganizations/example.com/${o}.example.com/peers/peer.${o}.example.com/:/etc/hyperledger/msp/peer${o}`
+    }).join('')}
+    networks:
+      - example_com
   
   
 `
+
+
 
 }
