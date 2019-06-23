@@ -1,8 +1,8 @@
 import {join, resolve} from 'path'
 import os from 'os'
 import R from 'ramda'
-import {CryptoConfig} from './config'
-
+import {getConfigTx} from './config/hf-config'
+import {createFile, TX_CONFIG} from './fileUtils'
 
 const makeArrayFromName = (name, size) => {
     
@@ -17,20 +17,6 @@ const generateNetworkParticipants = participants => {
         return makeArrayFromName(p.name, p.size)
     })
 }
-
-const generateConfigtx = () => {
-
-}
-
-const generateCryptoConfig = () => {
-
-}
-
-const generateDockerCompose = () => {
-
-}
-
-
 
 export class Network {
 
@@ -49,9 +35,8 @@ export class Network {
         
 
         //generate the materials
-        
-                                        
-
+      
+        createFile(join(this.defaultPath, TX_CONFIG), getConfigTx(or))
 
     }
 }
