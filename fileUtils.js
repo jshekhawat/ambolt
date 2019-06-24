@@ -28,3 +28,12 @@ export const createFile = (path, content) => {
         }
     })
 }
+
+
+export const enumFiles = (folderPath) => {
+    return new Promise((resolve, reject) => {
+        fs.readdir(folderPath, (e,r) => {
+            resolve(r)
+        })
+    })
+}

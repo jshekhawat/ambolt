@@ -1,4 +1,5 @@
-
+import { enumFiles } from '../fileUtils'
+import {join} from 'path'
 
 export const getCryptoConfig = (orgs, users) => {
     return `
@@ -122,7 +123,12 @@ Profiles:
 
 export const getDockerComposer = (orgs, opts) => {
 
-  const {FAB_VER, TP_VER} = opts
+  const {FAB_VER, TP_VER, ROOT_DIR} = opts
+
+  const certs = orgs.map(async o=> {
+    const files = await enumFiles(join(ROOT_DIR, `/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca`)) || []
+    return files.find(f => f.indexOf('_sk') !== -1)
+  })
 
   return `
   
@@ -155,6 +161,88 @@ services:
     }).join('')}
     networks:
       - example_com
+
+
+  ${orgs.map((o, i)=> {
+    return `
+  peer.${o}.example.com:
+    container_name: peer.${o}.example.com
+    image: hyperledger/fabric-peer:${FAB_VER}
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ID=peer0.${o}.example.com
+      - CORE_PEER_ADDRESS=peer0.${o}.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer.${o}.example.com:7051
+      - CORE_PEER_LISTENADDRESS=peer.${o}.example.com:7051
+      - CORE_PEER_GOSSIP_ENDPOINT=peer.${o}.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer.${o}.example.com:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer.${o}.example.com:7052
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_CHAINCODE_EXECUTETIMEOUT=60
+      - CORE_LOGGING_PEER=debug
+      - CORE_LOGGING_LEVEL=DEBUG
+      - FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_LOGGING_GOSSIP=DEBUG
+      - CORE_LOGGING_GRPC=DEBUG
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_LOCALMSPID=${o}MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@${o}.example.com/msp
+      - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb.${o}.example.com:5984
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=net_example_com
+    
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: peer node start --peer-chaincodedev=true
+    ports:
+      - 7${i}51:7051
+      - 7${i}52:7052
+      - 7${i}53:7053
+
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer.${o}.example.com/msp:/etc/hyperledger/msp/peer
+      - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/users:/etc/hyperledger/msp/users
+      - ../channel-artifacts/config:/etc/hyperledger/configtx
+    
+    depends_on:
+      - orderer.example.com
+      - couchdb.peer.${o}example.com
+
+    networks:
+      - example_com
+
+  
+  ca.${o}.example.com:
+    container_name: ca.${o}.example.com
+    image: hyperledger/fabric-ca:${FAB_VER}
+    environment:
+        - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+        - FABRIC_CA_SERVER_CA_NAME=ca.${o}.example.com
+        - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.${o}.example.com-cert.pem
+        - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${certs[i]}
+    ports:
+        - "7${i}54:7054"
+    
+    command: fabric-ca-server start -b admin:adminpw -d
+    volumes:
+        - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+        
+    networks:
+        - example_com
+
+  
+  couchdb.${o}.example.com:
+    container_name: couchdb.peer.${o}.example.com
+    image: hyperledger/fabric-couchdb:${TP_VER}
+    ports:
+      - 5${i}84:5984
+    networks:
+      - example_com
+    `
+  }).join('')}
   
   
 `
