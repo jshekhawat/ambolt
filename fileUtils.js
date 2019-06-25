@@ -38,3 +38,16 @@ export const enumFiles = (folderPath) => {
         })
     })
 }
+
+export const getContents = (path) => {
+    const edit = editor.create(memfs.create())
+    return edit.read(path)
+}
+
+export const exec = (contents, wd) => {
+    shell.exec([`cd ${wd}`, contents].join('\n'))
+}
+
+export const execFile = (path) => {
+    exec(getContents(path))
+}
