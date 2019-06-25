@@ -1,7 +1,7 @@
 import program from 'commander'
 import {Network} from './network'
 
-program.command('new')
+program.command('create')
     .action( async c => {
         const network = new Network()
         await network.create()
