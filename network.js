@@ -2,7 +2,7 @@ import {join, resolve} from 'path'
 import os from 'os'
 import R from 'ramda'
 import {getConfigTx, getCryptoConfig, getDockerComposer} from './config/hf-config'
-import {createFile,  TX_CONFIG, CRYPTO_CONFIG, DOCKER_COMPOSE} from './fileUtils'
+import {createFile, TX_CONFIG, CRYPTO_CONFIG, DOCKER_COMPOSE} from './fileUtils'
 
 const makeArrayFromName = (name, size) => {
     
@@ -34,10 +34,11 @@ export class Network {
                                         ])
         
         
-
-        
         createFile(join(this.defaultPath, CRYPTO_CONFIG), getCryptoConfig(or, users))
         createFile(join(this.defaultPath, TX_CONFIG), getConfigTx(or))
         createFile(join(this.defaultPath, DOCKER_COMPOSE), getDockerComposer(or, {FAB_VER: "1.4.1", TP_VER:"0.14.0", ROOT_DIR: this.defaultPath}))
+
+        
+
     }
 }

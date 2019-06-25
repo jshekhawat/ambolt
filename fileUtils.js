@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra'
 import * as memfs from 'mem-fs'
 import * as editor from 'mem-fs-editor'
+import * as shell from 'shelljs'
 
 
 export const CRYPTO_CONFIG = "crypto-config.yaml"
