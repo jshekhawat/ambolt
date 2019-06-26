@@ -145,8 +145,37 @@ dockerInstall
 
 }
 
-export const generateMaterials = (rootPath) => {
+export const generateMaterials = (rootPath, channels, orgs) => {
   return `
     
+    
+    function onError() {
+      if [$? -ne 0]; then
+        echo $1
+        exit $1
+      fi
+    }
+
+    rm -rf ${rootPath}/channel-artifacts/*
+    
+    ${rootPath}/bin/cryptogen generate --config=${rootPath}/crypto-config.yaml --output=${rootPath}/channel-artifacts/crypto-config
+    onError "failed to create crypto material"
+
+    ${rootPath}/bin/configtxgen -profile ExampleGenesis -outputBlock ${rootPath}/channel-artifacts/genesis.block -channelID orderer-sys-channel -configPath ${rootPath}
+    onError "failed to generate the orderer block"
+
+    for C in ${channels.map(c=> {return `${c} `}).join('')}
+    do
+
+      ${rootPath}/bin/configtxgen -profile ExampleChannel -outputCreateChannelTx ${rootPath}/channel-artifacts/$C.tx -channelID $C -configPath ${rootPath}
+
+      ${orgs.map(o=> {
+        return `
+        ${rootPath}/bin/configtxgen -profile ExampleChannel -outputAnchorPeersUpdate ${rootPath}/config/peer.${o}.example.com.$C.tx -channelID $C -asOrg ${o}MSP -configPath ${rootPath}
+        `
+      }).join('')}
+
+    done
+
   `
 }

@@ -3,7 +3,7 @@ import os from 'os'
 import R from 'ramda'
 import {getConfigTx, getCryptoConfig, getDockerComposer} from './config/hf-config'
 import {createFile, TX_CONFIG, CRYPTO_CONFIG, DOCKER_COMPOSE, exec} from './fileUtils'
-import {getBootstrap} from './config/scriptUtils'
+import {getBootstrap, generateMaterials} from './config/scriptUtils'
 
 const makeArrayFromName = (name, size) => {
     
@@ -41,7 +41,7 @@ export class Network {
                 
         await exec(getBootstrap({FAB_VER:"1.4.1", TP_VER:"0.4.14"}), this.defaultPath)
         
-        
+        await exec(generateMaterials(this.defaultPath, chs, or))
 
     }
 
