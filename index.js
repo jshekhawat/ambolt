@@ -3,30 +3,33 @@
 import program from 'commander'
 import {Network} from './network'
 
-program.command('create', 'creates a local network')
-.option('-c, --channels <channels>', 'number of channels in the network')
-.option('-o, --organizations <organizations>', 'number of organizations')
-.option('-u, --users <users>', 'number of users')
-    .action( async c => {
+program.command('create')
+    .description('creates a new local network')
+    .option('-c, --channels', 'number of channels in the network')
+    .option('-o, --organizations', 'number of organizations in the network')
+    .option('-u, --users', 'number of users in the network')
+    .action(async c=> {
         const network = new Network()
         await network.create()
     })
 
-program.command('remove', 'removes and cleans a local network')
-    .action( async c => {
-        await console.log(`network removed succesfully`)
-})
-
-program.command('attach', 'registers a local copy of the chaincode to a remote peer for debug')
-	.option('-a, --address <address>', 'endpoint to the peer')
+program.command('remove')
+    .description('removes a running local network')    
     .action(async c => {
-        await console.log('attach allows to register the chaincode with a running peer')
+        await console.log('removed the network successfully')
     })
-    
 
-program.command('install')
-    .action( async c => {
-        await console.log('installing of chaincode would be supported in the future')
+program.command('install <lang> <name> <version>')
+    .description('install a nodejs or golang chaincode')
+    .option('-d, --debug', 'run in debug mode')
+    .action(async c => {
+        await console.log('installed the chaincode successfully')
+    })
+
+program.command('join <peer-address> <path>')
+    .description('join a running network')
+    .action(async c=> {
+        await console.log('joined to the network succesfully')
     })
 
 program.parse(process.argv)

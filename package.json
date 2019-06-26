@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rimraf dist/ && ./node_modules/.bin/babel ./ --out-dir dist/ --ignore ./node_modules",
     "start:debug": "npm run build && nodemon dist/index.js",
-    "send": "npm run build && node dist/index.js"
+    "send": "npm run build && node dist/index.js",
+    "publish:local": "sudo npm rm -g ambolt && npm run build && sudo npm i -g ./"
   },
   "repository": {
     "type": "git",
