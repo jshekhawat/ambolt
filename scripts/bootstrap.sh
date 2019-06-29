@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 VERSION=1.4.1
 # if ca version not passed in, default to latest released version

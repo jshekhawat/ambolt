@@ -33,7 +33,7 @@ PeerOrgs:
 export const getConfigTx = (orgs) => {
   return `
   
-Organisations:
+Organizations:
   - &OrdererOrg
     Name: OrdererOrg
     ID: OrdererMSP
@@ -68,7 +68,7 @@ Application: &ApplicationDefaults
 
 
   Capabilities:
-    <<: *ApplicationCapabilties
+    <<: *ApplicationCapabilities
 
 Orderer: &OrdererDefaults
   OrdererType: solo
@@ -135,7 +135,7 @@ export const getDockerComposer = (orgs, opts) => {
 version: '2'
 
 networks:
-  example_com
+  example_com:
 
 services:
   orderer.example.com:
@@ -154,10 +154,10 @@ services:
     ports:
         - 7050:7050
     volumes:
-      - ./channel-artifacts/config/:/etc/hyperledger/configtx
-      - ./channel-artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
+      - ${ROOT_DIR}/channel-artifacts/config/:/etc/hyperledger/configtx
+      - ${ROOT_DIR}/channel-artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
     ${orgs.map(o=> {
-      return `  - ./channel-artifacts/crypto-config/peerOrganizations/example.com/${o}.example.com/peers/peer.${o}.example.com/:/etc/hyperledger/msp/peer${o}`
+      return `  - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/example.com/${o}.example.com/peers/peer.${o}.example.com/:/etc/hyperledger/msp/peer${o}`
     }).join('')}
     networks:
       - example_com
@@ -203,13 +203,13 @@ services:
 
     volumes:
       - /var/run/:/host/var/run/
-      - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer.${o}.example.com/msp:/etc/hyperledger/msp/peer
-      - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/users:/etc/hyperledger/msp/users
-      - ../channel-artifacts/config:/etc/hyperledger/configtx
+      - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer.${o}.example.com/msp:/etc/hyperledger/msp/peer
+      - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/users:/etc/hyperledger/msp/users
+      - ${ROOT_DIR}/channel-artifacts/config:/etc/hyperledger/configtx
     
     depends_on:
       - orderer.example.com
-      - couchdb.peer.${o}example.com
+      - couchdb.peer.${o}.example.com
 
     networks:
       - example_com
@@ -228,13 +228,13 @@ services:
     
     command: fabric-ca-server start -b admin:adminpw -d
     volumes:
-        - ../channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+        - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
         
     networks:
         - example_com
 
   
-  couchdb.${o}.example.com:
+  couchdb.peer.${o}.example.com:
     container_name: couchdb.peer.${o}.example.com
     image: hyperledger/fabric-couchdb:${TP_VER}
     ports:

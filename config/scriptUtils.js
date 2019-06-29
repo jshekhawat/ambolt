@@ -1,4 +1,4 @@
-export const getBootstrap = ({FAB_VER, TP_VER}) => {
+export const getBootstrap = ({FAB_VER, TP_VER, DOWN_BIN=true}) => {
 
     return `
 VERSION=${FAB_VER}
@@ -136,7 +136,9 @@ export THIRDPARTY_TAG=$THIRDPARTY_IMAGE_VERSION
 BINARY_FILE=hyperledger-fabric-$ARCH-$VERSION.tar.gz
 CA_BINARY_FILE=hyperledger-fabric-ca-$ARCH-$CA_VERSION.tar.gz
 
+if [ "${DOWN_BIN}" = true ]; then
 binariesInstall
+fi
 
 dockerInstall
     
@@ -171,11 +173,17 @@ export const generateMaterials = (rootPath, channels, orgs) => {
 
       ${orgs.map(o=> {
         return `
-        ${rootPath}/bin/configtxgen -profile ExampleChannel -outputAnchorPeersUpdate ${rootPath}/config/peer.${o}.example.com.$C.tx -channelID $C -asOrg ${o}MSP -configPath ${rootPath}
+        ${rootPath}/bin/configtxgen -profile ExampleChannel -outputAnchorPeersUpdate ${rootPath}/channel-artifacts/peer.${o}.example.com.$C.tx -channelID $C -asOrg ${o}MSP -configPath ${rootPath}
         `
       }).join('')}
 
     done
 
+  `
+}
+
+export const dockerUp = (dockerfile) => {
+  return `
+    docker-compose -f ${dockerfile} up
   `
 }
