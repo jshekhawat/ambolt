@@ -4,6 +4,8 @@ import R from 'ramda'
 import {getConfigTx, getCryptoConfig, getDockerComposer} from './config/hf-config'
 import {createFile, TX_CONFIG, CRYPTO_CONFIG, DOCKER_COMPOSE, exec} from './fileUtils'
 import {getBootstrap, generateMaterials, dockerUp} from './config/scriptUtils'
+import {logger} from './logUtil'
+
 
 const makeArrayFromName = (name, size) => {
     
@@ -26,22 +28,41 @@ export class Network {
 
     async create(orgs=1, channels=1, path=this.defaultPath, users=1) {
 
+        logger.info(`Initialising the ambolt base dir: ${path}`)
+
         const configPath = path ? resolve(os.homedir(), path) : join(os.homedir(), path)
+
+        logger.info('Generating the Network Participants')
 
         const [or, chs, usrs] = generateNetworkParticipants([{name: 'Org', size: orgs}
                                         , {name: 'Channel', size: channels}
                                         , {name: 'User', size: users} 
                                         ])
         
+        logger.info(`Creating Crypto Config File @ ${path}/${CRYPTO_CONFIG}`)
+
+        await createFile(join(path, CRYPTO_CONFIG), getCryptoConfig(or, users))
         
-        await createFile(join(this.defaultPath, CRYPTO_CONFIG), getCryptoConfig(or, users))
+        logger.info(`Creating the configuration transaction file @ ${path}/${TX_CONFIG}`)
+        
         await createFile(join(this.defaultPath, TX_CONFIG), getConfigTx(or))
-        await createFile(join(this.defaultPath, DOCKER_COMPOSE), getDockerComposer(or,
-            {FAB_VER: "1.4.1", TP_VER:"0.4.14", ROOT_DIR: this.defaultPath}))
                 
-        await exec(getBootstrap({FAB_VER:"1.4.1", TP_VER:"0.4.14", DOWN_BIN:true}), this.defaultPath)
+        logger.info(`Downloading binaries and fabric images`)
+
+        await exec(getBootstrap({FAB_VER:"1.4.1", TP_VER:"0.4.14", DOWN_BIN:true}), path)
         
-        await exec(generateMaterials(this.defaultPath, chs, or))
+        logger.info(`Generating the crypto materials`)
+
+        await exec(generateMaterials(path, chs, or))
+
+        logger.info(`creating the docker compose file`)
+
+        const dockercontent = await getDockerComposer(or,
+            {FAB_VER: "1.4.1", TP_VER:"0.4.14", ROOT_DIR: this.defaultPath})
+
+        await createFile(join(this.defaultPath, DOCKER_COMPOSE), dockercontent)
+
+        logger.info(`bringing up the docker network`)
 
         await exec(dockerUp(join(this.defaultPath, 'docker-compose.yaml')))
         

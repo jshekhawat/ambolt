@@ -150,6 +150,7 @@ dockerInstall
 export const generateMaterials = (rootPath, channels, orgs) => {
   return `
     
+    #!/bin/bash
     
     function onError() {
       if [$? -ne 0]; then

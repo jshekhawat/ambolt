@@ -1,5 +1,5 @@
 import { enumFiles } from '../fileUtils'
-import {join} from 'path'
+import {join, resolve} from 'path'
 
 export const getCryptoConfig = (orgs, users) => {
     return `
@@ -46,7 +46,7 @@ ${orgs.map(o => {
     ID: ${o}MSPID
     MSPDir: ./channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/msp
     AnchorPeers:
-      - Host: peer.${o}.example.com
+      - Host: peer0.${o}.example.com
         Port: 7051
   `
 }).join('')}    
@@ -121,14 +121,20 @@ Profiles:
   `
 }
 
-export const getDockerComposer = (orgs, opts) => {
+async function getCert(o, dir) {
+  let files = await enumFiles(`${dir}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca`) 
+  
+  return files.find(f => f.indexOf('_sk') !== -1)
+}
+
+
+
+
+export async function getDockerComposer (orgs, opts) {
 
   const {FAB_VER, TP_VER, ROOT_DIR} = opts
-
-  const certs = orgs.map(async o=> {
-    const files = await enumFiles(join(ROOT_DIR, `/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca`)) || []
-    return files.find(f => f.indexOf('_sk') !== -1)
-  })
+  
+  let certs = await Promise.all(orgs.map(o=> {return getCert(o, ROOT_DIR)}))
 
   return `
   
@@ -154,10 +160,10 @@ services:
     ports:
         - 7050:7050
     volumes:
-      - ${ROOT_DIR}/channel-artifacts/config/:/etc/hyperledger/configtx
-      - ${ROOT_DIR}/channel-artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
+      - ./channel-artifacts/:/etc/hyperledger/configtx
+      - ./channel-artifacts/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
     ${orgs.map(o=> {
-      return `  - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/example.com/${o}.example.com/peers/peer.${o}.example.com/:/etc/hyperledger/msp/peer${o}`
+      return `  - ./channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer0.${o}.example.com/:/etc/hyperledger/msp/peer0${o}`
     }).join('')}
     networks:
       - example_com
@@ -165,18 +171,18 @@ services:
 
   ${orgs.map((o, i)=> {
     return `
-  peer.${o}.example.com:
-    container_name: peer.${o}.example.com
+  peer0.${o}.example.com:
+    container_name: peer0.${o}.example.com
     image: hyperledger/fabric-peer:${FAB_VER}
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.${o}.example.com
       - CORE_PEER_ADDRESS=peer0.${o}.example.com:7051
-      - CORE_PEER_GOSSIP_BOOTSTRAP=peer.${o}.example.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.${o}.example.com:7051
       - CORE_PEER_LISTENADDRESS=peer.${o}.example.com:7051
-      - CORE_PEER_GOSSIP_ENDPOINT=peer.${o}.example.com:7051
-      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer.${o}.example.com:7051
-      - CORE_PEER_CHAINCODELISTENADDRESS=peer.${o}.example.com:7052
+      - CORE_PEER_GOSSIP_ENDPOINT=peer0.${o}.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.${o}.example.com:7051
+      - CORE_PEER_CHAINCODELISTENADDRESS=peer0.${o}.example.com:7052
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
       - CORE_CHAINCODE_EXECUTETIMEOUT=60
       - CORE_LOGGING_PEER=debug
@@ -203,13 +209,13 @@ services:
 
     volumes:
       - /var/run/:/host/var/run/
-      - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer.${o}.example.com/msp:/etc/hyperledger/msp/peer
-      - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/users:/etc/hyperledger/msp/users
-      - ${ROOT_DIR}/channel-artifacts/config:/etc/hyperledger/configtx
+      - ./channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/peers/peer0.${o}.example.com/msp:/etc/hyperledger/msp/peer
+      - ./channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/users:/etc/hyperledger/msp/users
+      - ./channel-artifacts/config:/etc/hyperledger/configtx
     
     depends_on:
       - orderer.example.com
-      - couchdb.peer.${o}.example.com
+      - couchdb.peer0.${o}.example.com
 
     networks:
       - example_com
@@ -228,14 +234,14 @@ services:
     
     command: fabric-ca-server start -b admin:adminpw -d
     volumes:
-        - ${ROOT_DIR}/channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+        - ./channel-artifacts/crypto-config/peerOrganizations/${o}.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
         
     networks:
         - example_com
 
   
-  couchdb.peer.${o}.example.com:
-    container_name: couchdb.peer.${o}.example.com
+  couchdb.peer0.${o}.example.com:
+    container_name: couchdb.peer0.${o}.example.com
     image: hyperledger/fabric-couchdb:${TP_VER}
     ports:
       - 5${i}84:5984

@@ -23,6 +23,7 @@ export const remove = path => {
 export const createFile = (path, content) => {
     return new Promise((resolve, reject)=> {
         try {
+        
             write(path, content, resolve)
         } catch (e) {
             reject(e)
@@ -33,7 +34,10 @@ export const createFile = (path, content) => {
 
 export const enumFiles = (folderPath) => {
     return new Promise((resolve, reject) => {
-        fs.readdir(folderPath, (e,r) => {
+       return fs.readdir(folderPath, (e,r) => {
+           if(e) {
+               reject(e)
+           }
             resolve(r)
         })
     })
