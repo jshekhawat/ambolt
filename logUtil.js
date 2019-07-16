@@ -1,7 +1,5 @@
 import winston, {format} from 'winston'
 
-
-
 const {combine, colorize, label, timestamp, printf} = format
 
 const myFormat = printf(({ level, message, label, timestamp }) => {

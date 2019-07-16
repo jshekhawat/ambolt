@@ -16,7 +16,8 @@ program.command('create')
 program.command('remove')
     .description('removes a running local network')    
     .action(async c => {
-        await console.log('removed the network successfully')
+        const network = new Network()
+        await network.remove()
     })
 
 program.command('install <lang> <name> <version>')

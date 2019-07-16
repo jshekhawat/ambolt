@@ -185,6 +185,6 @@ export const generateMaterials = (rootPath, channels, orgs) => {
 
 export const dockerUp = (dockerfile) => {
   return `
-    docker-compose -f ${dockerfile} up
+    docker-compose -f ${dockerfile} up -d
   `
 }

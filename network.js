@@ -65,10 +65,19 @@ export class Network {
         logger.info(`bringing up the docker network`)
 
         await exec(dockerUp(join(this.defaultPath, 'docker-compose.yaml')))
-        
+
     }
 
     async remove() {
+        logger.info("Checking if a network is running")
+
+        await exec(`docker-compose down -v --rmi all --remove-orphans`, this.defaultPath)
+
+        logger.info("removing the base dir")
+
+        await exec(`cd .. && rm -rf .hf-network`, this.defaultPath)
+
+        logger.info("Removed the network successfully")
 
     }
 }
